@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: de_agent_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-data_engineering_agent}
+      POSTGRES_USER: ${POSTGRES_USER:-dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dev} -d ${POSTGRES_DB:-data_engineering_agent}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Ephemeral app container for running the agent / tests without installing Python on the host.
+  # Usage: docker compose run --rm app pytest
+  app:
+    build: .
+    container_name: de_agent_app
+    env_file: .env
+    environment:
+      # Inside the compose network, reach Postgres by service name, not localhost.
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-dev}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-data_engineering_agent}
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["tools"]
+
+volumes:
+  postgres_data:
