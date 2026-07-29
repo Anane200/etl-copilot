@@ -12,7 +12,7 @@ load_dotenv()
 @dataclass(frozen=True)
 class Settings:
     database_url: str
-    anthropic_api_key: str | None
+    gemini_api_key: str | None
     planner_model: str
     executor_model: str
 
@@ -25,7 +25,7 @@ class Settings:
             )
         return cls(
             database_url=database_url,
-            anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY"),
-            planner_model=os.environ.get("ANTHROPIC_PLANNER_MODEL", "claude-sonnet-5"),
-            executor_model=os.environ.get("ANTHROPIC_EXECUTOR_MODEL", "claude-sonnet-5"),
+            gemini_api_key=os.environ.get("GEMINI_API_KEY"),
+            planner_model=os.environ.get("GEMINI_PLANNER_MODEL", "gemini-2.5-flash"),
+            executor_model=os.environ.get("GEMINI_EXECUTOR_MODEL", "gemini-2.5-flash"),
         )
