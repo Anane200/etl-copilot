@@ -1,0 +1,8 @@
+# Core runtime dependencies
+pandas>=2.2
+openpyxl>=3.1            # Excel engine for pandas
+sqlalchemy>=2.0
+psycopg[binary]>=3.2     # psycopg3 driver (postgresql+psycopg://)
+python-dotenv>=1.0
+pyyaml>=6.0
+anthropic>=0.40          # AI planner / tool-calling loop
