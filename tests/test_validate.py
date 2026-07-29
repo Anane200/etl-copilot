@@ -24,7 +24,7 @@ def test_valid_data_passes(good_df):
 def test_bad_data_accumulates_all_errors():
     df = pd.DataFrame({"id": [1, 1, 3], "name": ["Alice", None, "Charlie"]})
     v = DataValidator(df)
-    assert not v.check_duplicates()          # duplicate id row
+    assert not v.check_duplicates(subset=["id"])  # duplicate id (1 appears twice)
     assert not v.check_no_nulls(["name"])    # null name
     report = v.get_report()
     assert not report["is_valid"]
