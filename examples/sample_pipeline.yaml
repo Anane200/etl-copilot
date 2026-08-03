@@ -1,0 +1,29 @@
+# Example config-driven ETL pipeline.
+# Run: python run_pipeline.py examples/sample_pipeline.yaml
+name: sample_pipeline
+
+source:
+  type: csv
+  path: examples/sample_data.csv
+
+# YAML key 'validate' maps to the ValidationConfig model.
+validate:
+  required_columns: [id, name, amount]
+  no_nulls: [id, name]
+  unique: [id]
+
+transformations:
+  - op: rename_columns
+    mapping: {amount: total_amount}
+  - op: fill_nulls
+    column: total_amount
+    value: 0
+
+target:
+  type: postgres
+  table: sample_pipeline_out
+  if_exists: append
+
+# Incremental load: only rows with id greater than the last run's max id.
+incremental: true
+watermark_column: id
