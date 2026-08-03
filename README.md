@@ -19,6 +19,26 @@ tests/       pytest unit tests
 The current vertical slice: **extract -> validate -> load to Postgres**, plus a
 Gemini planner and a manual tool-calling loop.
 
+### Config-driven ETL (Phase 2)
+
+A pipeline can be defined entirely in YAML (`examples/sample_pipeline.yaml`) and
+run without code:
+
+```bash
+docker compose --profile tools run --rm app \
+  python run_pipeline.py examples/sample_pipeline.yaml
+```
+
+`ETLPipeline` orchestrates extract -> watermark filter -> validate -> transform
+-> load, retries transient load failures with exponential backoff, advances the
+per-pipeline watermark, and writes a JSON run report under `logs/reports/`.
+
+- **Incremental loads:** set `incremental: true` and a `watermark_column`; each
+  run only processes rows greater than the last run's max (persisted in the
+  `etl_watermarks` Postgres table).
+- **Transformations:** an ordered list of `{op, ...}` steps
+  (`rename_columns`, `fill_nulls`, `remove_duplicates`, `drop_columns`, `cast`).
+
 ## Setup
 
 1. Copy the environment template and fill in values:
