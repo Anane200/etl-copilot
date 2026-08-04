@@ -39,6 +39,22 @@ per-pipeline watermark, and writes a JSON run report under `logs/reports/`.
 - **Transformations:** an ordered list of `{op, ...}` steps
   (`rename_columns`, `fill_nulls`, `remove_duplicates`, `drop_columns`, `cast`).
 
+### AI agent (Phases 4–5)
+
+- **Planner** (`agent/planner.py`) turns a natural-language request into a
+  schema-validated `ETLPlan` using Gemini structured output.
+- **Executor** (`agent/executor.py`) is a tool-calling loop exposing
+  `list_tables`, `get_row_count`, `run_sql_query`, and `run_etl_pipeline` (which
+  runs a whole YAML pipeline). The agent can therefore inspect the database and
+  execute config-driven ETL end to end.
+
+Both require `GEMINI_API_KEY`. A live smoke test is provided:
+
+```bash
+docker compose up -d postgres
+docker compose --profile tools run --rm app python smoke_ai.py
+```
+
 ## Setup
 
 1. Copy the environment template and fill in values:
