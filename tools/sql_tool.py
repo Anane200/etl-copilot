@@ -81,6 +81,10 @@ class PostgreSQLConnector:
         _safe_identifier(table)
         return inspect(self.engine).has_table(table)
 
+    def list_tables(self) -> list[str]:
+        """Return the names of tables in the public schema."""
+        return inspect(self.engine).get_table_names()
+
     def get_row_count(self, table: str) -> int:
         ident = _safe_identifier(table)
         result = self.execute_query(f"SELECT COUNT(*) AS count FROM {ident}")
