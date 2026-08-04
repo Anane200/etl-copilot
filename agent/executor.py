@@ -36,6 +36,8 @@ class ToolCallingExecutor:
         self._handlers: dict[str, Callable[..., Any]] = {
             "run_sql_query": self._run_sql_query,
             "get_row_count": self._get_row_count,
+            "list_tables": self._list_tables,
+            "run_etl_pipeline": self._run_etl_pipeline,
         }
         self._tools = types.Tool(function_declarations=self._declarations())
 
@@ -45,6 +47,20 @@ class ToolCallingExecutor:
 
     def _get_row_count(self, table: str) -> dict:
         return {"table": table, "count": self.connector.get_row_count(table)}
+
+    def _list_tables(self) -> dict:
+        return {"tables": self.connector.list_tables()}
+
+    def _run_etl_pipeline(self, config_path: str) -> dict:
+        """Run a config-driven ETL pipeline defined in a YAML file."""
+        # Imported here to keep the agent layer decoupled from the pipeline
+        # layer at module load time.
+        from config.etl_config import ETLConfig
+        from pipelines.etl_pipeline import ETLPipeline
+
+        config = ETLConfig.from_yaml(config_path)
+        run = ETLPipeline(config, self.connector).run()
+        return run.to_dict()
 
     # --- Tool declarations exposed to the model -------------------------------
     @staticmethod
@@ -76,6 +92,29 @@ class ToolCallingExecutor:
                         )
                     },
                     required=["table"],
+                ),
+            ),
+            types.FunctionDeclaration(
+                name="list_tables",
+                description="List the names of all tables in the database.",
+                parameters=types.Schema(type=types.Type.OBJECT, properties={}),
+            ),
+            types.FunctionDeclaration(
+                name="run_etl_pipeline",
+                description=(
+                    "Run a config-driven ETL pipeline defined in a YAML file "
+                    "(extract, validate, transform, load) and return the run "
+                    "summary including rows read/loaded and status."
+                ),
+                parameters=types.Schema(
+                    type=types.Type.OBJECT,
+                    properties={
+                        "config_path": types.Schema(
+                            type=types.Type.STRING,
+                            description="Path to the pipeline YAML config file.",
+                        )
+                    },
+                    required=["config_path"],
                 ),
             ),
         ]
